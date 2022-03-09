@@ -39,7 +39,7 @@ def extract_EDA_features():
 
 def extract_ECG_features(ecg_df):
     peaks, info = nk.ecg_peaks(ecg_df.values, sampling_rate=1000)
-    hrv_features = nk.hrv(peaks, sampling_rate=1000, show=True)
+    hrv_features = nk.hrv(peaks, sampling_rate=1000, show=False)
     return hrv_features
 
 
