@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import os
 from csv import reader
 
@@ -8,6 +9,12 @@ import matplotlib.pyplot as plt
 
 import neurokit2 as nk
 import hrvanalysis as hrvana
+
+
+def is_cognitively_fatigued(block):
+    # If the subject is in the first 3 blocks, we assume they are not fatigued
+    block_num = int(block.split("_")[0][-1])
+    return block_num, 0 if block_num <= 3 else 1
 
 
 def get_n_back_score(block_dir):
@@ -67,14 +74,31 @@ if __name__ == "__main__":
                 if "block" not in block or "practice" in block.lower():
                     # Ignore directories other than block
                     continue
-                block_dir = os.path.join(session_dir, block)
-                # For each block, we want to extract three different sets of data
-                score = get_n_back_score(block_dir)
-                print(
-                    f"{session_counter+1}. Score: {score} | Session: {session[-1]} | User_ID: {user_id}"
-                )
-                session_counter += 1
-                bsp_features = extract_features(block_dir)
-                data_features = data_features.append(bsp_features, ignore_index=True)
+
+                try:
+                    block_dir = os.path.join(session_dir, block)
+                    # For each block, we want to extract three different sets of data
+                    score = get_n_back_score(block_dir)
+                    print(
+                        f"{session_counter+1}. Score: {score} | Session: {session[-1]} | User_ID: {user_id}"
+                    )
+                    session_counter += 1
+                    bsp_features = extract_features(block_dir)
+                    block_num, cog_fatigue = is_cognitively_fatigued(block)
+                    bsp_features.insert(loc=0, column="user_id", value=user_id)
+                    bsp_features.insert(loc=1, column="block_num", value=block_num)
+                    bsp_features["n_back_score"] = score
+                    bsp_features["cog_fatigue"] = cog_fatigue
+                    data_features = data_features.append(
+                        bsp_features, ignore_index=True
+                    )
+
+                except Exception as error:
+                    print("--------------------")
+                    print(
+                        f"ERROR: {session_counter+1}. Score: {score} | Session: {session[-1]} | User_ID: {user_id}"
+                    )
+                    print(error)
+                    print("--------------------")
 
     data_features.to_csv("bsp_features.csv")
