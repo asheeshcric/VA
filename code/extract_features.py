@@ -1,5 +1,6 @@
 from multiprocessing.sharedctypes import Value
 import os
+import sys
 from csv import reader
 
 import numpy as np
@@ -65,6 +66,11 @@ if __name__ == "__main__":
     phy_data_dir = "/home/ashish/Documents/github/VA/data/physical_data"
     session_counter = 0
     data_features = pd.DataFrame([])
+    # For logging error outputs
+    old_stdout = sys.stdout
+    log_file = open("data_log.log", "w")
+    sys.stdout = log_file
+
     for user_id in range(1, 10):
         user_dir = os.path.join(cog_data_dir, f"user_{user_id}")
         for session in os.listdir(user_dir):
@@ -102,3 +108,5 @@ if __name__ == "__main__":
                     print("--------------------")
 
     data_features.to_csv("ecg_hrv_features.csv")
+    sys.stdout = old_stdout
+    log_file.close()
