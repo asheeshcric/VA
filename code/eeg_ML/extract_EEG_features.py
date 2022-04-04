@@ -3,8 +3,12 @@ This script extracts temporal features from the EEG data for data from multiple 
 Stores all data from one subject in one single csv file
 """
 import os
+from argparse import ArgumentParser
+from click import Argument
+
 import numpy as np
 import pandas as pd
+from parso import parse
 from scipy.stats import stats
 
 
@@ -82,6 +86,16 @@ def main(window_size, fatigue_block):
     session_counter = 0
     for user_id in range(1, 10):
         user_dir = os.path.join(cog_data_dir, f"user_{user_id}")
+        dest_eeg_path = os.path.join(cog_data_dir, f"eeg_features_ws_{window_size}")
+        if not os.path.exists(dest_eeg_path):
+            os.makedirs(dest_eeg_path)
+        dest_csv_path = os.path.join(dest_eeg_path, f"user_{user_id}.csv")
+        if os.path.exists(dest_csv_path):
+            print(
+                "User_ID: {user_id}: Data already present at: {dest_eeg_path}_user_{user_id}.csv"
+            )
+            continue
+
         user_df = pd.DataFrame()
         for session in os.listdir(user_dir):
             session_dir = os.path.join(user_dir, session)
@@ -94,23 +108,39 @@ def main(window_size, fatigue_block):
                 eeg_dir = os.path.join(block_dir, "eeg")
                 eeg_filename = get_eeg_csv_filename(eeg_dir)
                 eeg_path = os.path.join(block_dir, "eeg", eeg_filename)
-                print(
-                    f"{session_counter+1}. Session: {session[-1]} | User_ID: {user_id} | Session: {session} | Block_dir: {block}"
-                )
                 user_features = extract_features(eeg_path, window_size)
-                fatigue = 0 if int(block[5]) < fatigue_block else 1
-                user_features['fatigue_label'] = fatigue
+                try:
+                    fatigue = 0 if int(block[5]) < fatigue_block else 1
+                except Exception as error:
+                    print(error)
+                    print(
+                        f"{session_counter+1}. Session: {session[-1]} | User_ID: {user_id} | Session: {session} | Block_dir: {block}"
+                    )
+                user_features["fatigue_label"] = fatigue
                 user_df = user_df.append(user_features)
                 session_counter += 1
 
-        dest_eeg_path = os.path.join(cog_data_dir, f"eeg_features_ws_{window_size}")
-        if not os.path.exists(dest_eeg_path):
-            os.makedirs(dest_eeg_path)
-        user_df.to_csv(os.path.join(dest_eeg_path, f"user_{user_id}.csv"), index=False)
-        break
+        user_df.to_csv(dest_csv_path, index=False)
+        print(
+            f"User_ID: {user_id}: Data stored successfully at: {dest_eeg_path}_user_{user_id}.csv"
+        )
 
 
 if __name__ == "__main__":
-    window_size = 50
-    fatigue_block = 4
-    main(window_size, fatigue_block)
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-w",
+        "--window_size",
+        type=int,
+        default=50,
+        help="Window size to aggregate temporal features",
+    )
+    parser.add_argument(
+        "-fb",
+        "--fatigue_block",
+        type=int,
+        default=4,
+        help="Block number from which we consider subject to be fatigued",
+    )
+    args = parser.parse_args()
+    main(args.window_size, args.fatigue_block)
