@@ -4,6 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
 
 
@@ -41,6 +42,14 @@ def train(X_train, y_train):
     return clf
 
 
+def train_RF(X_train, y_train):
+    print("Training started...")
+    clf = RandomForestClassifier(n_jobs=-1)
+    clf.fit(X_train, y_train)
+    print("Training ended...")
+    return clf
+
+
 def test(clf, X_test, y_test):
     print("Testing started...")
     y_pred = clf.predict(X_test)
@@ -53,13 +62,15 @@ def test(clf, X_test, y_test):
 
 def main():
     print("Running script...")
-    data_dir = "/home/ashish/Documents/github/VA/data/cognitive_data/eeg_features_ws_50"
+    data_dir = (
+        "/home/ashish/Documents/github/VA/data/cognitive_data/eeg_features_ws_50"
+    )
     X_train, y_train, X_test, y_test = train_test_split(data_dir, test_pct=0.3)
     X_train_np, X_test_np = X_train.to_numpy(), X_test.to_numpy()
     X_train_np, X_test_np = X_train_np.astype(float), X_test_np.astype(float)
     y_train_np, y_test_np = y_train.to_numpy(), y_test.to_numpy()
     y_train_np, y_test_np = y_train_np.astype(int), y_test_np.astype(int)
-    clf = train(X_train_np, np.ravel(y_train_np))
+    clf = train_RF(X_train_np, np.ravel(y_train_np))
     test(clf, X_test_np, np.ravel(y_test_np))
 
 
