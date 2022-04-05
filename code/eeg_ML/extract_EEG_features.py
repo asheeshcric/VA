@@ -117,6 +117,7 @@ def main(window_size, fatigue_block):
                         f"{session_counter+1}. Session: {session[-1]} | User_ID: {user_id} | Session: {session} | Block_dir: {block}"
                     )
                 user_features["fatigue_label"] = fatigue
+                
                 user_df = user_df.append(user_features)
                 session_counter += 1
 
