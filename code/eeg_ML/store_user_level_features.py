@@ -2,6 +2,7 @@
 This script extracts temporal features from the EEG data for data from multiple windows (with fixed size)
 Stores all data from one subject in one single csv file
 """
+from operator import index
 import os
 from argparse import ArgumentParser
 from click import Argument
@@ -74,8 +75,10 @@ class TemporalFeatures:
 
 def get_eeg_csv_filename(eeg_dir):
     for filename in os.listdir(eeg_dir):
-        if ".csv" in filename:
+        if ".csv" in filename and "features" not in filename:
             return filename
+
+    return None
 
 
 def extract_features(eeg_data_file, window_size):
@@ -120,7 +123,25 @@ def main(window_size, fatigue_block):
                 block_dir = os.path.join(session_dir, block)
                 eeg_dir = os.path.join(block_dir, "eeg")
                 eeg_filename = get_eeg_csv_filename(eeg_dir)
+                if not eeg_filename:
+                    continue
                 eeg_path = os.path.join(block_dir, "eeg", eeg_filename)
+                if not os.path.exists(eeg_path):
+                    continue
+
+                features_path = os.path.join(
+                    block_dir,
+                    "eeg",
+                    f"features_ws_{window_size}_fb_{fatigue_block}.csv",
+                )
+
+                if os.path.exists(features_path):
+                    # Data already stored
+                    continue
+
+                print(
+                    f"{session_counter+1}. User_ID: {user_id} | Session: {session} | Block_dir: {block}"
+                )
                 user_features = extract_features(eeg_path, window_size)
                 try:
                     fatigue = 0 if int(block[5]) < fatigue_block else 1
