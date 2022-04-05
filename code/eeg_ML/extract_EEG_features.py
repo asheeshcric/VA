@@ -33,24 +33,29 @@ class TemporalFeatures:
     def aggregate_values(self, df, window_size, aggregation_metric):
         try:
             if aggregation_metric == "mean":
-                return df.rolling(window_size, min_periods=0).mean()
+                # return df.rolling(window_size, min_periods=0).mean()
+                return df.groupby(df.index // window_size).mean()
             elif aggregation_metric == "max":
-                return df.rolling(window_size, min_periods=0).max()
+                # return df.rolling(window_size, min_periods=0).max()
+                return df.groupby(df.index // window_size).max()
             elif aggregation_metric == "min":
-                return df.rolling(window_size, min_periods=0).min()
+                # return df.rolling(window_size, min_periods=0).min()
+                return df.groupby(df.index // window_size).min()
             elif aggregation_metric == "median":
-                return df.rolling(window_size, min_periods=0).median()
+                # return df.rolling(window_size, min_periods=0).median()
+                return df.groupby(df.index // window_size).median()
             elif aggregation_metric == "std":
-                return df.rolling(window_size, min_periods=0).std()
+                # return df.rolling(window_size, min_periods=0).std()
+                return df.groupby(df.index // window_size).std()
             elif aggregation_metric == "slope":
-                return df.rolling(window_size, min_periods=0).apply(self.get_slope)
+                # return df.rolling(window_size, min_periods=0).apply(self.get_slope)
+                return df.groupby(df.index // window_size).apply(self.get_slope)
             else:
                 return np.nan
         except Exception as error:
             # For any kind of file/data error
             return np.nan
-        
-        
+
     def add_temporal_features(self, df, cols, window_size, aggregation_metrics):
         features_df = pd.DataFrame([])
         for aggregation_metric in aggregation_metrics:
@@ -125,7 +130,7 @@ def main(window_size, fatigue_block):
                         f"{session_counter+1}. Session: {session[-1]} | User_ID: {user_id} | Session: {session} | Block_dir: {block}"
                     )
                 user_features["fatigue_label"] = fatigue
-                
+
                 user_df = user_df.append(user_features)
                 session_counter += 1
 
