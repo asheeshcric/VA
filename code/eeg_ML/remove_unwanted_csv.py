@@ -2,7 +2,7 @@ import os
 
 cog_data_dir = "/home/ashish/Documents/github/VA/data/cognitive_data"
 
-for user_id in range(1, 10):
+for user_id in range(1, 10): 
     user_dir = os.path.join(cog_data_dir, f"user_{user_id}")
     for session in os.listdir(user_dir):
         # Sanity check for session directory name
