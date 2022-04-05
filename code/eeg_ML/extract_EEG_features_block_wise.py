@@ -75,8 +75,10 @@ class TemporalFeatures:
 
 def get_eeg_csv_filename(eeg_dir):
     for filename in os.listdir(eeg_dir):
-        if ".csv" in filename:
+        if ".csv" in filename and "features" not in filename:
             return filename
+
+    return None
 
 
 def extract_features(eeg_data_file, window_size):
@@ -110,20 +112,31 @@ def main(window_size, fatigue_block):
                 block_dir = os.path.join(session_dir, block)
                 eeg_dir = os.path.join(block_dir, "eeg")
                 eeg_filename = get_eeg_csv_filename(eeg_dir)
+                if not eeg_filename:
+                    continue
                 eeg_path = os.path.join(block_dir, "eeg", eeg_filename)
-                user_features = extract_features(eeg_path, window_size)
-                fatigue = 0 if int(block[5]) < fatigue_block else 1
-                user_features["fatigue_label"] = fatigue
+                if not os.path.exists(eeg_path):
+                    continue
+
                 features_path = os.path.join(
                     block_dir,
                     "eeg",
                     f"features_ws_{window_size}_fb_{fatigue_block}.csv",
                 )
-                user_features.to_csv(features_path, index=False)
+
+                if os.path.exists(features_path):
+                    # Data already stored
+                    continue
 
                 print(
-                    f"{session_counter+1}. Session: {session[-1]} | User_ID: {user_id} | Session: {session} | Block_dir: {block}"
+                    f"{session_counter+1}. User_ID: {user_id} | Session: {session} | Block_dir: {block}"
                 )
+
+                user_features = extract_features(eeg_path, window_size)
+                fatigue = 0 if int(block[5]) < fatigue_block else 1
+                user_features["fatigue_label"] = fatigue
+
+                user_features.to_csv(features_path, index=False)
                 session_counter += 1
 
 
