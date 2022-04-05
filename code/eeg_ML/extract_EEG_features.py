@@ -31,21 +31,26 @@ class TemporalFeatures:
             return slope
 
     def aggregate_values(self, df, window_size, aggregation_metric):
-        if aggregation_metric == "mean":
-            return df.rolling(window_size, min_periods=0).mean()
-        elif aggregation_metric == "max":
-            return df.rolling(window_size, min_periods=0).max()
-        elif aggregation_metric == "min":
-            return df.rolling(window_size, min_periods=0).min()
-        elif aggregation_metric == "median":
-            return df.rolling(window_size, min_periods=0).median()
-        elif aggregation_metric == "std":
-            return df.rolling(window_size, min_periods=0).std()
-        elif aggregation_metric == "slope":
-            return df.rolling(window_size, min_periods=0).apply(self.get_slope)
-        else:
+        try:
+            if aggregation_metric == "mean":
+                return df.rolling(window_size, min_periods=0).mean()
+            elif aggregation_metric == "max":
+                return df.rolling(window_size, min_periods=0).max()
+            elif aggregation_metric == "min":
+                return df.rolling(window_size, min_periods=0).min()
+            elif aggregation_metric == "median":
+                return df.rolling(window_size, min_periods=0).median()
+            elif aggregation_metric == "std":
+                return df.rolling(window_size, min_periods=0).std()
+            elif aggregation_metric == "slope":
+                return df.rolling(window_size, min_periods=0).apply(self.get_slope)
+            else:
+                return np.nan
+        except Exception as error:
+            # For any kind of file/data error
             return np.nan
-
+        
+        
     def add_temporal_features(self, df, cols, window_size, aggregation_metrics):
         features_df = pd.DataFrame([])
         for aggregation_metric in aggregation_metrics:
@@ -98,6 +103,9 @@ def main(window_size, fatigue_block):
 
         user_df = pd.DataFrame()
         for session in os.listdir(user_dir):
+            # Sanity check for session directory name
+            if "session" not in session:
+                continue
             session_dir = os.path.join(user_dir, session)
             for block in os.listdir(session_dir):
                 # Sanity check if the directory has the name "block" or not

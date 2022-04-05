@@ -32,25 +32,29 @@ class TemporalFeatures:
             return slope
 
     def aggregate_values(self, df, window_size, aggregation_metric):
-        if aggregation_metric == "mean":
-            # return df.rolling(window_size, min_periods=0).mean()
-            return df.groupby(df.index // window_size).mean()
-        elif aggregation_metric == "max":
-            # return df.rolling(window_size, min_periods=0).max()
-            return df.groupby(df.index // window_size).max()
-        elif aggregation_metric == "min":
-            # return df.rolling(window_size, min_periods=0).min()
-            return df.groupby(df.index // window_size).min()
-        elif aggregation_metric == "median":
-            # return df.rolling(window_size, min_periods=0).median()
-            return df.groupby(df.index // window_size).median()
-        elif aggregation_metric == "std":
-            # return df.rolling(window_size, min_periods=0).std()
-            return df.groupby(df.index // window_size).std()
-        elif aggregation_metric == "slope":
-            # return df.rolling(window_size, min_periods=0).apply(self.get_slope)
-            return df.groupby(df.index // window_size).apply(self.get_slope)
-        else:
+        try:
+            if aggregation_metric == "mean":
+                # return df.rolling(window_size, min_periods=0).mean()
+                return df.groupby(df.index // window_size).mean()
+            elif aggregation_metric == "max":
+                # return df.rolling(window_size, min_periods=0).max()
+                return df.groupby(df.index // window_size).max()
+            elif aggregation_metric == "min":
+                # return df.rolling(window_size, min_periods=0).min()
+                return df.groupby(df.index // window_size).min()
+            elif aggregation_metric == "median":
+                # return df.rolling(window_size, min_periods=0).median()
+                return df.groupby(df.index // window_size).median()
+            elif aggregation_metric == "std":
+                # return df.rolling(window_size, min_periods=0).std()
+                return df.groupby(df.index // window_size).std()
+            elif aggregation_metric == "slope":
+                # return df.rolling(window_size, min_periods=0).apply(self.get_slope)
+                return df.groupby(df.index // window_size).apply(self.get_slope)
+            else:
+                return np.nan
+        except Exception as error:
+            # For any kind of file/data error
             return np.nan
 
     def add_temporal_features(self, df, cols, window_size, aggregation_metrics):
@@ -94,6 +98,9 @@ def main(window_size, fatigue_block):
     for user_id in range(1, 10):
         user_dir = os.path.join(cog_data_dir, f"user_{user_id}")
         for session in os.listdir(user_dir):
+            # Sanity check for session directory name
+            if "session" not in session:
+                continue
             session_dir = os.path.join(user_dir, session)
             for block in os.listdir(session_dir):
                 # Sanity check if the directory has the name "block" or not
