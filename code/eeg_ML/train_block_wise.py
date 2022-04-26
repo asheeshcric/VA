@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 
 
 def gen_dataset(data_dir, user_ids, window_size, fatigue_block):
@@ -120,6 +120,7 @@ def test_block_wise(clf, test_user_ids, data_dir, window_size, fatigue_block):
     # print(pred_classes, true_classes)
     print(confusion_matrix(true_classes, pred_classes))
     print(accuracy_score(true_classes, pred_classes))
+    print(classification_report(true_classes, pred_classes))
 
 
 def main(window_size, fatigue_block):
